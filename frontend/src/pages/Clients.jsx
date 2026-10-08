@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import PageTitle from '../components/PageTitle'
 import { CLIENTS, TESTIMONIALS } from '../data'
+import { apiRequest } from '../api'
 
 const testimonialImages = [
   '/assets/img/person/person-f-9.webp',
@@ -10,6 +11,7 @@ const testimonialImages = [
 
 export default function Clients() {
   const [status, setStatus] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
   const [form, setForm] = useState({ name: '', email: '', phone: '', service: '', message: '' })
 
   const handleChange = (event) => {
@@ -17,10 +19,19 @@ export default function Clients() {
     setForm(currentForm => ({ ...currentForm, [name]: value }))
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
-    setStatus('sent')
-    setForm({ name: '', email: '', phone: '', service: '', message: '' })
+    setStatus('loading')
+    setErrorMessage('')
+
+    try {
+      await apiRequest('/inquiries', { method: 'POST', body: form })
+      setStatus('sent')
+      setForm({ name: '', email: '', phone: '', service: '', message: '' })
+    } catch (error) {
+      setStatus('error')
+      setErrorMessage(error.message)
+    }
   }
 
   return (
@@ -85,7 +96,10 @@ export default function Clients() {
               </label>
             </div>
             {status === 'sent' && <p className="client-form-success" role="status">Thank you. Our team will contact you shortly.</p>}
-            <button type="submit" className="client-form-submit">Submit <i className="bi bi-arrow-right"></i></button>
+            {status === 'error' && <p className="client-form-error" role="alert">{errorMessage}</p>}
+            <button type="submit" className="client-form-submit" disabled={status === 'loading'}>
+              {status === 'loading' ? 'Submitting...' : 'Submit'} <i className="bi bi-arrow-right"></i>
+            </button>
           </form>
         </div>
       </div>

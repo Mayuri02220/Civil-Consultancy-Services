@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { SERVICES, PROJECTS, CLIENTS , TESTIMONIALS } from '../data'
+import { apiRequest } from '../api'
 
 export default function Home() {
   return (
@@ -87,66 +89,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Services */}
-      <section id="civil-services" className="services section light-background">
-        <div className="container section-title" data-aos="fade-up">
-          <h2>Services</h2>
-          <p>Delivering innovative civil engineering solutions for sustainable infrastructure and development.<br />Our expert team ensures precision and efficiency in every project phase.</p>
-        </div>
-        <div className="container" data-aos="fade-up" data-aos-delay="100">
-          <div className="services-grid">
-            {SERVICES.map((s, i) => (
-              <div key={s.slug} className={`service-item${s.featured ? ' featured' : ''}`} data-aos="fade-up" data-aos-delay={150 + i * 50}>
-                {s.featured && <div className="featured-badge">Premium</div>}
-                <div className="service-number">{s.number}</div>
-                <div className="service-icon"><i className={`bi ${s.icon}`}></i></div>
-                <h3>{s.title}</h3>
-                <p>{s.short}</p>
-                <Link to={`/services/${s.slug}`} className="service-cta">
-                  <span>Explore Service</span><i className="bi bi-arrow-right"></i>
-                </Link>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Projects */}
-      <section id="projects" className="projects section">
-        <div className="container section-title" data-aos="fade-up">
-          <h2>Projects</h2>
-          <p>A showcase of our completed and ongoing civil engineering and infrastructure projects across India.</p>
-        </div>
-        <div className="container" data-aos="fade-up" data-aos-delay="100">
-          <div className="row gy-4">
-            {PROJECTS.map((p, i) => (
-              <div key={p.slug} className="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay={100 + (i % 3) * 100}>
-                <div className="project-card">
-                  <div className="project-image">
-                    <img src={p.image} alt={p.title} className="img-fluid" />
-                    <div className="project-overlay">
-                      <div className={`project-status ${p.status}`}>{p.status === 'in-progress' ? 'In Progress' : p.status.charAt(0).toUpperCase() + p.status.slice(1)}</div>
-                      <div className="project-actions">
-                        <Link to={`/projects/${p.slug}`} className="btn-project">View Details</Link>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="project-info">
-                    <div className="project-category">{p.category}</div>
-                    <h4 className="project-title">{p.title}</h4>
-                    <p className="project-description">{p.description}</p>
-                    <div className="project-meta">
-                      <span><i className="bi bi-geo-alt"></i> {p.location}</span>
-                      <span><i className="bi bi-calendar"></i> {p.duration}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Quote CTA */}
       <section id="quote" className="quote section">
         <div className="container" data-aos="fade-up" data-aos-delay="100">
@@ -187,12 +129,22 @@ export default function Home() {
 
 function QuoteFormInline() {
   const [status, setStatus] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
   const [form, setForm] = useState({ name: '', email: '', phone: '', type: '', timeline: '', budget: '', message: '' })
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setStatus('loading')
-    setTimeout(() => setStatus('sent'), 1500)
+    setErrorMessage('')
+
+    try {
+      await apiRequest('/inquiries', { method: 'POST', body: form })
+      setStatus('sent')
+      setForm({ name: '', email: '', phone: '', type: '', timeline: '', budget: '', message: '' })
+    } catch (error) {
+      setStatus('error')
+      setErrorMessage(error.message)
+    }
   }
 
   return (
@@ -234,11 +186,10 @@ function QuoteFormInline() {
         <label>Project Description</label>
         <textarea name="message" rows="4" placeholder="Describe your project vision and requirements..." required value={form.message} onChange={e => setForm(f => ({...f, message: e.target.value}))}></textarea>
       </div>
-      {status === 'loading' && <div className="loading">Loading</div>}
-      {status === 'sent' && <div className="sent-message" style={{display:'block'}}>Thank you! Your quote request has been received. Our team will contact you within 24 hours.</div>}
-      <button type="submit" className="submit-btn"><span>Request Detailed Quote</span><i className="bi bi-arrow-right"></i></button>
+      {status === 'loading' && <div className="loading" style={{ display: 'block' }}>Submitting...</div>}
+      {status === 'error' && <div className="error-message" style={{ display: 'block' }} role="alert">{errorMessage}</div>}
+      {status === 'sent' && <div className="sent-message" style={{display:'block'}} role="status">Thank you! Your quote request has been received. Our team will contact you within 24 hours.</div>}
+      <button type="submit" className="submit-btn" disabled={status === 'loading'}><span>Request Detailed Quote</span><i className="bi bi-arrow-right"></i></button>
     </form>
   )
 }
-
-import { useState } from 'react'

@@ -1,0 +1,89 @@
+{
+  "info": {
+    "name": "Civil Consultancy API",
+    "description": "MongoDB-backed API for account access and client inquiries.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "token", "value": "" },
+    { "key": "adminKey", "value": "replace-with-the-ADMIN_API_KEY-from-backend-env" },
+    { "key": "inquiryId", "value": "replace-with-an-inquiry-id" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Check API and MongoDB",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/health" }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["if (pm.response.code === 201) pm.collectionVariables.set('token', pm.response.json().data.token);"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Aarav Patil\",\n  \"email\": \"aarav@example.com\",\n  \"password\": \"CivilDemo123!\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/auth/register"
+          }
+        },
+        {
+          "name": "Login",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["if (pm.response.code === 200) pm.collectionVariables.set('token', pm.response.json().data.token);"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"aarav@example.com\",\n  \"password\": \"CivilDemo123!\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/auth/login"
+          }
+        },
+        {
+          "name": "Get current account",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/auth/me"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Inquiries",
+      "item": [
+        {
+          "name": "Submit inquiry",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["if (pm.response.code === 201) pm.collectionVariables.set('inquiryId', pm.response.json().data.id);"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Aarav Patil\",\n  \"email\": \"aarav@example.com\",\n  \"phone\": \"+91 98765 43210\",\n  \"service\": \"engineering\",\n  \"timeline\": \"1-3 months\",\n  \"budget\": \"To be discussed\",\n  \"message\": \"I need a road pavement design consultation.\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/inquiries"
+          }
+        },
+        {
+          "name": "List inquiries (admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-Admin-Key", "value": "{{adminKey}}" }],
+            "url": { "raw": "{{baseUrl}}/api/inquiries?page=1&limit=20&status=new", "host": ["{{baseUrl}}"], "path": ["api", "inquiries"], "query": [{ "key": "page", "value": "1" }, { "key": "limit", "value": "20" }, { "key": "status", "value": "new" }] }
+          }
+        },
+        {
+          "name": "Update inquiry status (admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "X-Admin-Key", "value": "{{adminKey}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"in-progress\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{baseUrl}}/api/inquiries/{{inquiryId}}/status"
+          }
+        }
+      ]
+    }
+  ]
+}

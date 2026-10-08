@@ -1,38 +1,50 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { apiRequest } from '../api'
 
 export default function AuthPage({ mode }) {
   const isRegister = mode === 'register'
   const [notice, setNotice] = useState('')
+  const [noticeType, setNoticeType] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
-    const formData = new FormData(event.currentTarget)
+    const formElement = event.currentTarget
+    const formData = new FormData(formElement)
     const password = formData.get('password')
 
     if (isRegister && password !== formData.get('confirmPassword')) {
+      setNoticeType('error')
       setNotice('The passwords do not match.')
       return
     }
 
-    setNotice('Account access is not connected yet. Your details have not been saved.')
+    setIsSubmitting(true)
+    setNotice('')
+
+    try {
+      const body = {
+        email: formData.get('email'),
+        password,
+        ...(isRegister ? { name: formData.get('name') } : {}),
+      }
+      const result = await apiRequest(`/auth/${isRegister ? 'register' : 'login'}`, { method: 'POST', body })
+      localStorage.setItem('authToken', result.data.token)
+      setNoticeType('success')
+      setNotice(isRegister ? 'Account created successfully.' : 'Logged in successfully.')
+      formElement.reset()
+    } catch (error) {
+      setNoticeType('error')
+      setNotice(error.message)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
     <section className="auth-page">
       <div className="auth-layout">
-        <aside className="auth-intro">
-          <span className="auth-kicker">Civil Consultancy Services</span>
-          <h1>{isRegister ? 'Build with confidence.' : 'Welcome back.'}</h1>
-          <p>
-            {isRegister
-              ? 'Create an account to keep your project conversations and consultancy requests together.'
-              : 'Sign in to continue your project conversations with our consultancy team.'}
-          </p>
-          <div className="auth-intro-rule" />
-          <span className="auth-intro-caption">Engineering expertise. Digital precision.</span>
-        </aside>
-
         <div className="auth-panel">
           <div className="auth-panel-heading">
             <span className="auth-step">{isRegister ? 'NEW CLIENT' : 'CLIENT ACCESS'}</span>
@@ -62,8 +74,8 @@ export default function AuthPage({ mode }) {
               </label>
             )}
 
-            {notice && <p className="auth-notice" role="status">{notice}</p>}
-            <button className="auth-submit" type="submit">{isRegister ? 'Create account' : 'Log in'}</button>
+            {notice && <p className={`auth-notice auth-notice-${noticeType}`} role={noticeType === 'error' ? 'alert' : 'status'}>{notice}</p>}
+            <button className="auth-submit" type="submit" disabled={isSubmitting}>{isSubmitting ? 'Please wait...' : isRegister ? 'Create account' : 'Log in'}</button>
           </form>
 
           <p className="auth-switch">

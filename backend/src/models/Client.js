@@ -1,0 +1,17 @@
+import mongoose from 'mongoose'
+
+const clientSchema = new mongoose.Schema({
+  name: { type: String, required: true, trim: true, maxlength: 100 },
+
+  email: { type: String, required: true, unique: true, lowercase: true, trim: true, maxlength: 254 },
+  
+  passwordHash: { type: String, required: true, select: false },
+
+  lastLoginAt: { type: Date, default: null },
+
+  loginCount: { type: Number, default: 0, min: 0 },
+}, 
+
+{ timestamps: true })
+
+export default mongoose.model('Client', clientSchema)
