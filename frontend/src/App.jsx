@@ -17,6 +17,7 @@ import ProjectDetail from './pages/ProjectDetail'
 import ServiceDetail from './pages/ServiceDetail'
 import Privacy from './pages/Privacy'
 import Terms from './pages/Terms'
+import AdminDashboard from './pages/AdminDashboard'
 // import NotFound from './pages/NotFound'
 
 export default function App() {
@@ -37,6 +38,7 @@ export default function App() {
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:slug" element={<ProjectDetail />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/login" element={<AuthPage mode="login" />} />
           <Route path="/register" element={<AuthPage mode="register" />} />
           {/* <Route path="/quote" element={<Quote />} /> */}
