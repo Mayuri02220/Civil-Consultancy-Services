@@ -35,6 +35,7 @@ export default function Header() {
             <li><NavLink to="/projects">Projects</NavLink></li>
             <li><NavLink to="/clients" onClick={() => setMobileOpen(false)}>Clients</NavLink></li>
             <li><NavLink to="/contact">Contact</NavLink></li>
+            <li><NavLink to="/admin">Admin</NavLink></li>
           </ul>
           {/* <i
             className={`mobile-nav-toggle d-xl-none bi ${mobileOpen ? 'bi-x' : 'bi-list'}`}
